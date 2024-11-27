@@ -21,7 +21,7 @@ func handleConnection(connection net.Conn) {
 	fmt.Println("Recieved Data: ", string(buffer[:n]))
 
 	// buffer = make([]byte, 1024)
-	buffer = []byte("1\r\n \r\n7")
+	buffer = []byte{0, 0, 0, 0, 0, 0, 0, 7}
 	n, err = connection.Write(buffer)
 	if err != nil {
 		fmt.Println("Error writing response: ", err.Error())
