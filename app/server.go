@@ -1,40 +1,38 @@
 package main
 
 import (
+	"encoding/binary"
 	"fmt"
 	"net"
 	"os"
 )
 
-// Ensures gofmt doesn't remove the "net" and "os" imports in stage 1 (feel free to remove this!)
-var _ = net.Listen
-var _ = os.Exit
-
 func handleConnection(connection net.Conn) {
 	defer connection.Close()
 
 	buffer := make([]byte, 1024)
-	n, err := connection.Read(buffer)
+	_, err := connection.Read(buffer)
 	if err != nil {
 		fmt.Println("Error reading request: ", err.Error())
+		return
 	}
-	fmt.Println("Recieved Data: ", string(buffer[:n]))
 
-	// buffer = make([]byte, 1024)
-	buffer = []byte("1\r\n \r\n7")
-	n, err = connection.Write(buffer)
+	messageSize := int32(4) // 4 bytes for the correlation_id
+	correlationID := int32(7)
+
+	// Prepare response buffer
+	response := make([]byte, 8)
+	binary.BigEndian.PutUint32(response[0:4], uint32(messageSize))        // message_size
+	binary.BigEndian.PutUint32(response[4:8], uint32(correlationID)) // correlation_id
+
+	_, err = connection.Write(response)
 	if err != nil {
 		fmt.Println("Error writing response: ", err.Error())
 	}
-	fmt.Println("Send Data: ", string(buffer[:n]))
-
 }
 
 func main() {
-	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	fmt.Println("Logs from your program will appear here!")
-
-	// Uncomment this block to pass the first stage
 
 	l, err := net.Listen("tcp", "0.0.0.0:9092")
 	if err != nil {
