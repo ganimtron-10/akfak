@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
 	"net"
 	"os"
@@ -20,18 +22,22 @@ func handleConnection(connection net.Conn) {
 	}
 	// fmt.Println("Recieved Data: ", string(buffer[:n]))
 
-	// messageSize := make([]byte, 4)
+	messageSize := make([]byte, 4)
 
-	// offset := 4 + 4
-	// correlationID := buffer[offset : offset+8]
+	offset := 4 + 4
+	correlationID := buffer[offset : offset+4]
 	// fmt.Println("CorelationID: ", binary.BigEndian.Uint32(correlationID))
 
+	errorCode := make([]byte, 2)
+	binary.BigEndian.PutUint16(errorCode, uint16(35))
+
 	// buffer = make([]byte, 1024)
-	// bBuffer := bytes.Buffer{}
-	// bBuffer.Write(messageSize)
-	// bBuffer.Write(correlationID)
-	// _, err = connection.Write(bBuffer.Bytes())
-	connection.Write([]byte{0, 0, 0, 0, buffer[8], buffer[9], buffer[10], buffer[11], 0, 35})
+	bBuffer := bytes.Buffer{}
+	bBuffer.Write(messageSize)
+	bBuffer.Write(correlationID)
+	bBuffer.Write(errorCode)
+	_, err = connection.Write(bBuffer.Bytes())
+	// connection.Write([]byte{0, 0, 0, 0, buffer[8], buffer[9], buffer[10], buffer[11], 0, 35})
 	if err != nil {
 		fmt.Println("Error writing response: ", err.Error())
 	}
