@@ -9,7 +9,6 @@ import (
 )
 
 func handleConnection(connection net.Conn) {
-	defer connection.Close()
 
 	buffer := make([]byte, 1024)
 	_, err := connection.Read(buffer)
