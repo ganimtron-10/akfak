@@ -8,10 +8,6 @@ import (
 	"os"
 )
 
-// Ensures gofmt doesn't remove the "net" and "os" imports in stage 1 (feel free to remove this!)
-var _ = net.Listen
-var _ = os.Exit
-
 func handleConnection(connection net.Conn) {
 	defer connection.Close()
 
@@ -22,6 +18,12 @@ func handleConnection(connection net.Conn) {
 	}
 	// fmt.Println("Recieved Data: ", string(buffer[:n]))
 
+	// ----------- New Method -------------
+
+	// request := parseRequest(buffer)
+	// fmt.Println(request)
+
+	// ----------- Old Method -------------
 	messageSize := make([]byte, 4)
 
 	correlationID := buffer[8 : 8+4]
@@ -57,7 +59,6 @@ func handleConnection(connection net.Conn) {
 	// Refer for message response structure: https://forum.codecrafters.io/t/question-about-handle-apiversions-requests-stage/1743/3?u=ganimtron-10
 
 	_, err = connection.Write(bBuffer.Bytes())
-	// connection.Write([]byte{0, 0, 0, 0, buffer[8], buffer[9], buffer[10], buffer[11], 0, 35})
 	if err != nil {
 		fmt.Println("Error writing response: ", err.Error())
 	}
@@ -66,14 +67,12 @@ func handleConnection(connection net.Conn) {
 }
 
 func main() {
-	// You can use print statements as follows for debugging, they'll be visible when running tests.
-	fmt.Println("Logs from your program will appear here!")
+	PORT := 9092
+	fmt.Printf("Starting Akfak on port %d...", PORT)
 
-	// Uncomment this block to pass the first stage
-
-	l, err := net.Listen("tcp", "0.0.0.0:9092")
+	l, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", PORT))
 	if err != nil {
-		fmt.Println("Failed to bind to port 9092")
+		fmt.Printf("Failed to bind to port %d", PORT)
 		os.Exit(1)
 	}
 	defer l.Close()
