@@ -12,25 +12,38 @@ func handleConnection(connection net.Conn) {
 	defer connection.Close()
 
 	for {
-		buffer := make([]byte, 1024)
-		_, err := connection.Read(buffer)
-		if err != nil {
-			fmt.Println("Error reading request: ", err.Error())
-			return
-		}
-		// fmt.Println("Recieved Data: ", string(buffer[:n]))
 
 		// ----------- New Method -------------
+		buf := make([]byte, 1024)
+		bbuffer := bytes.Buffer{}
 
-		// request := parseRequest(buffer)
-		// fmt.Println(request)
+		n, err := connection.Read(buf)
+		if err != nil {
+			fmt.Println("Closing Connection, Error reading request: ", err.Error())
+			return
+		}
+		bbuffer.Write(buf[:n])
+
+		request, err := parseRequest(&bbuffer)
+		if err != nil {
+			fmt.Println("Error parsing request: ", err.Error())
+		}
+		fmt.Println(request, bbuffer)
 
 		// ----------- Old Method -------------
+		// buffer := make([]byte, 1024)
+		// _, err := connection.Read(buffer)
+		// if err != nil {
+		// 	fmt.Println("Error reading request: ", err.Error())
+		// 	return
+		// }
+		// // fmt.Println("Recieved Data: ", string(buffer[:n]))
+
 		messageSize := make([]byte, 4)
 
-		correlationID := buffer[8 : 8+4]
+		correlationID := buf[8 : 8+4]
 		// fmt.Println("CorelationID: ", binary.BigEndian.Uint32(correlationID))
-		apiVersion := buffer[6 : 6+2]
+		apiVersion := buf[6 : 6+2]
 
 		errorCode := make([]byte, 2)
 		switch binary.BigEndian.Uint16(apiVersion) {
@@ -70,7 +83,7 @@ func handleConnection(connection net.Conn) {
 
 func main() {
 	PORT := 9092
-	fmt.Printf("Starting Akfak on port %d...", PORT)
+	fmt.Printf("Starting Akfak on port %d...\n", PORT)
 
 	l, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", PORT))
 	if err != nil {
