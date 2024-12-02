@@ -32,3 +32,12 @@ Note: This section is for stages 2 and beyond.
    `app/server.go`.
 1. Commit your changes and run `git push origin master` to submit your solution
    to CodeCrafters. Test output will be streamed to your terminal.
+
+
+# References
+
+1. ApiKeys - https://kafka.apache.org/protocol.html#protocol_api_keys
+1. Request and Response - https://kafka.apache.org/protocol.html#protocol_messages
+1. ApiVersions - https://kafka.apache.org/protocol.html#The_Messages_ApiVersions
+1. DescribePartitions - https://kafka.apache.org/protocol.html#The_Messages_DescribeTopicPartitions
+1. ErrorCode - https://kafka.apache.org/protocol.html#protocol_error_codes
