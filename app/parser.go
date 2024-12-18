@@ -85,8 +85,16 @@ func (request *ApiVersionsRequest) generateResponse(commonResponse *Response) {
 	apiVersionResponse.apiKey = request.apiKey
 	apiVersionResponse.minVersion = 0
 	apiVersionResponse.maxVersion = 4
-
 	apiVersionResponse.bytes(&commonResponse.apiBytesData)
+
+	// describe topic response
+	commonResponse.numOfApiKeys += 1
+	describeTopicVersionResponse := ApiVersionsResponse{}
+	describeTopicVersionResponse.apiKey = 75
+	describeTopicVersionResponse.minVersion = 0
+	describeTopicVersionResponse.maxVersion = 0
+	describeTopicVersionResponse.bytes(&commonResponse.apiBytesData)
+
 	commonResponse.throttleTime = 0
 }
 
