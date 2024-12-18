@@ -56,3 +56,12 @@ func ignoreTagField(buffer *bytes.Buffer) {
 		fmt.Println("Error reading TAGGED_FIELD length: ", err.Error())
 	}
 }
+
+func getApiVersionsErrorCode(apiVersion int16) int16 {
+	switch apiVersion {
+	case 0, 1, 2, 3, 4:
+		return 0
+	default:
+		return 35
+	}
+}

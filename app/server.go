@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/binary"
 	"fmt"
 	"net"
 	"os"
@@ -28,7 +27,20 @@ func handleConnection(connection net.Conn) {
 		if err != nil {
 			fmt.Println("Error parsing request: ", err.Error())
 		}
-		fmt.Println(request, bbuffer)
+		// fmt.Println(request, bbuffer)
+
+		response, err := processAndGenerateResponse(request)
+		if err != nil {
+			fmt.Println("Error generating Response: ", err.Error())
+			return
+		}
+
+		bbuffer.Reset()
+		response.bytes(&bbuffer)
+		_, err = connection.Write(bbuffer.Bytes())
+		if err != nil {
+			fmt.Println("Error writing response: ", err.Error())
+		}
 
 		// ----------- Old Method -------------
 		// buffer := make([]byte, 1024)
@@ -39,45 +51,45 @@ func handleConnection(connection net.Conn) {
 		// }
 		// // fmt.Println("Recieved Data: ", string(buffer[:n]))
 
-		messageSize := make([]byte, 4)
+		// messageSize := make([]byte, 4)
 
-		correlationID := buf[8 : 8+4]
-		// fmt.Println("CorelationID: ", binary.BigEndian.Uint32(correlationID))
-		apiVersion := buf[6 : 6+2]
+		// correlationID := buf[8 : 8+4]
+		// // fmt.Println("CorelationID: ", binary.BigEndian.Uint32(correlationID))
+		// apiVersion := buf[6 : 6+2]
 
-		errorCode := make([]byte, 2)
-		switch binary.BigEndian.Uint16(apiVersion) {
-		case 0, 1, 2, 3, 4:
-			binary.BigEndian.PutUint16(errorCode, uint16(0))
-		default:
-			binary.BigEndian.PutUint16(errorCode, uint16(35))
-		}
+		// errorCode := make([]byte, 2)
+		// switch binary.BigEndian.Uint16(apiVersion) {
+		// case 0, 1, 2, 3, 4:
+		// 	binary.BigEndian.PutUint16(errorCode, uint16(0))
+		// default:
+		// 	binary.BigEndian.PutUint16(errorCode, uint16(35))
+		// }
 
-		apiKeys := []byte{2, 0, 18, 0, 0, 0, 4}
+		// apiKeys := []byte{2, 0, 18, 0, 0, 0, 4}
 
-		tagBuffer := byte(0)
-		throttleTime := make([]byte, 4)
-		binary.BigEndian.PutUint32(throttleTime, uint32(0))
-		// buffer = make([]byte, 1024)
-		message := correlationID
-		message = append(message, errorCode...)
-		message = append(message, apiKeys...)
-		message = append(message, tagBuffer)
-		message = append(message, throttleTime...)
-		message = append(message, tagBuffer)
+		// tagBuffer := byte(0)
+		// throttleTime := make([]byte, 4)
+		// binary.BigEndian.PutUint32(throttleTime, uint32(0))
+		// // buffer = make([]byte, 1024)
+		// message := correlationID
+		// message = append(message, errorCode...)
+		// message = append(message, apiKeys...)
+		// message = append(message, tagBuffer)
+		// message = append(message, throttleTime...)
+		// message = append(message, tagBuffer)
 
-		binary.BigEndian.PutUint32(messageSize, uint32(len(message)))
+		// binary.BigEndian.PutUint32(messageSize, uint32(len(message)))
 
-		bBuffer := bytes.Buffer{}
-		bBuffer.Write(messageSize)
-		bBuffer.Write(message)
-		// Refer for message response structure: https://forum.codecrafters.io/t/question-about-handle-apiversions-requests-stage/1743/3?u=ganimtron-10
+		// bBuffer := bytes.Buffer{}
+		// bBuffer.Write(messageSize)
+		// bBuffer.Write(message)
+		// // Refer for message response structure: https://forum.codecrafters.io/t/question-about-handle-apiversions-requests-stage/1743/3?u=ganimtron-10
 
-		_, err = connection.Write(bBuffer.Bytes())
-		if err != nil {
-			fmt.Println("Error writing response: ", err.Error())
-		}
-		// fmt.Println("Send Data: ", string(bBuffer.Bytes()[:n]))
+		// _, err = connection.Write(bBuffer.Bytes())
+		// if err != nil {
+		// 	fmt.Println("Error writing response: ", err.Error())
+		// }
+		// // fmt.Println("Send Data: ", string(bBuffer.Bytes()[:n]))
 	}
 }
 

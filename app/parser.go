@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 )
 
@@ -68,6 +69,39 @@ func (request *ApiVersionsRequest) parse(buffer *bytes.Buffer) {
 	ignoreTagField(buffer)
 }
 
+func (response *ApiVersionsResponse) bytes(buffer *bytes.Buffer) {
+	binary.Write(buffer, binary.BigEndian, response.apiKey)
+	binary.Write(buffer, binary.BigEndian, response.minVersion)
+	binary.Write(buffer, binary.BigEndian, response.maxVersion)
+}
+
+func (request *ApiVersionsRequest) generateResponse(commonResponse *Response) {
+	commonResponse.correlationId = request.correlationId
+	commonResponse.errorCode = getApiVersionsErrorCode(request.apiVersion)
+	commonResponse.numOfApiKeys = 1 + 1
+
+	apiVersionResponse := ApiVersionsResponse{}
+	apiVersionResponse.apiKey = request.apiKey
+	apiVersionResponse.minVersion = 0
+	apiVersionResponse.maxVersion = 4
+
+	apiVersionResponse.bytes(&commonResponse.apiBytesData)
+	commonResponse.throttleTime = 0
+}
+
+func (response *Response) bytes(buffer *bytes.Buffer) {
+	message := &bytes.Buffer{}
+	binary.Write(message, binary.BigEndian, response.correlationId)
+	binary.Write(message, binary.BigEndian, response.errorCode)
+	binary.Write(message, binary.BigEndian, response.numOfApiKeys)
+	binary.Write(message, binary.BigEndian, response.apiBytesData.Bytes())
+	binary.Write(message, binary.BigEndian, response.throttleTime)
+	response.messageSize = int32(message.Len())
+
+	binary.Write(buffer, binary.BigEndian, response.messageSize)
+	binary.Write(buffer, binary.BigEndian, message.Bytes())
+}
+
 func parseRequest(buffer *bytes.Buffer) (RequestInterface, error) {
 	header := RequestHeader{}
 	binary.Read(buffer, binary.BigEndian, &header.messageSize)
@@ -75,7 +109,7 @@ func parseRequest(buffer *bytes.Buffer) (RequestInterface, error) {
 	binary.Read(buffer, binary.BigEndian, &header.apiVersion)
 	binary.Read(buffer, binary.BigEndian, &header.correlationId)
 	header.clientId = readNullableString(buffer)
-	ignoreTagFiled(buffer)
+	ignoreTagField(buffer)
 
 	switch header.apiKey {
 	case 18:
@@ -87,4 +121,16 @@ func parseRequest(buffer *bytes.Buffer) (RequestInterface, error) {
 		return nil, err
 	}
 
+}
+
+func processAndGenerateResponse(request RequestInterface) (ResponseInterface, error) {
+	switch request := request.(type) {
+	case *ApiVersionsRequest:
+		response := Response{}
+		request.generateResponse(&response)
+		return &response, nil
+	default:
+		err := errors.New("Request type is not Supported")
+		return nil, err
+	}
 }

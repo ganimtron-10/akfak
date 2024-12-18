@@ -18,9 +18,13 @@ type RequestHeader struct {
 	clientId      string
 }
 
-type ResponseHeader struct {
+type Response struct {
 	messageSize   int32
 	correlationId int32
+	errorCode     int16
+	numOfApiKeys  int8
+	apiBytesData  bytes.Buffer
+	throttleTime  int32
 }
 
 // ApiVersions
@@ -31,19 +35,16 @@ type ApiVersionsRequest struct {
 	clientSoftwareVersion string
 }
 
-type ApiKeys struct {
+type ApiVersionsResponse struct {
 	apiKey     int16
 	minVersion int16
 	maxVersion int16
 }
 
-type ApiVersionsResponse struct {
-	ResponseHeader
-	errorCode    int16
-	apiKeys      ApiKeys
-	throttleTime int32
-}
-
 type RequestInterface interface {
 	parse(buffer *bytes.Buffer)
+}
+
+type ResponseInterface interface {
+	bytes(buffer *bytes.Buffer)
 }
