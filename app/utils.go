@@ -57,6 +57,14 @@ func ignoreTagField(buffer *bytes.Buffer) {
 	}
 }
 
+func addTagField(buffer *bytes.Buffer) {
+	// not an ideal implementation, will figure this out later
+	_, err := buffer.Write([]byte{0})
+	if err != nil {
+		fmt.Println("Error writing TAGGED_FIELD: ", err.Error())
+	}
+}
+
 func getApiVersionsErrorCode(apiVersion int16) int16 {
 	switch apiVersion {
 	case 0, 1, 2, 3, 4:

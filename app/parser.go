@@ -73,6 +73,7 @@ func (response *ApiVersionsResponse) bytes(buffer *bytes.Buffer) {
 	binary.Write(buffer, binary.BigEndian, response.apiKey)
 	binary.Write(buffer, binary.BigEndian, response.minVersion)
 	binary.Write(buffer, binary.BigEndian, response.maxVersion)
+	addTagField(buffer)
 }
 
 func (request *ApiVersionsRequest) generateResponse(commonResponse *Response) {
@@ -96,6 +97,7 @@ func (response *Response) bytes(buffer *bytes.Buffer) {
 	binary.Write(message, binary.BigEndian, response.numOfApiKeys)
 	binary.Write(message, binary.BigEndian, response.apiBytesData.Bytes())
 	binary.Write(message, binary.BigEndian, response.throttleTime)
+	addTagField(message)
 	response.messageSize = int32(message.Len())
 
 	binary.Write(buffer, binary.BigEndian, response.messageSize)
