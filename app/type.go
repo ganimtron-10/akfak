@@ -66,11 +66,12 @@ type Partition struct {
 }
 
 type Topic struct {
-	errorCode  int16
-	name       string
-	topicId    uuid.UUID
-	isInternal bool
-	partitions []Partition
+	errorCode                 int16
+	name                      string
+	topicId                   uuid.UUID
+	isInternal                bool
+	partitions                []Partition
+	topicAuthorizedOperations int32
 }
 
 type NextCursor struct {

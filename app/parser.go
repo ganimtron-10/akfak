@@ -124,6 +124,8 @@ func (request *DescribePartitionsRequest) parse(buffer *bytes.Buffer) {
 
 func (response *DescribePartitionsResponse) bytes(buffer *bytes.Buffer) {
 	binary.Write(buffer, binary.BigEndian, response.throttleTime)
+
+	// topics
 	binary.Write(buffer, binary.BigEndian, int8(len(response.topics)+1))
 	for _, topic := range response.topics {
 		binary.Write(buffer, binary.BigEndian, topic.errorCode)
@@ -139,8 +141,14 @@ func (response *DescribePartitionsResponse) bytes(buffer *bytes.Buffer) {
 			addTagField(buffer)
 		}
 
+		binary.Write(buffer, binary.BigEndian, topic.topicAuthorizedOperations)
 		addTagField(buffer)
 	}
+
+	// next cursor
+	writeCompactString(buffer, response.nextCursor.topicName)
+	binary.Write(buffer, binary.BigEndian, response.nextCursor.partitionIndex)
+
 	addTagField(buffer)
 }
 
