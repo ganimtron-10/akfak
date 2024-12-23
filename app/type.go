@@ -1,6 +1,10 @@
 package main
 
-import "bytes"
+import (
+	"bytes"
+
+	"github.com/google/uuid"
+)
 
 // type Request struct {
 // 	messageSize   int32
@@ -39,6 +43,40 @@ type ApiVersionsResponse struct {
 	apiKey     int16
 	minVersion int16
 	maxVersion int16
+}
+
+// DescribePartitions
+
+type DescribePartitionsRequest struct {
+	RequestHeader
+	names                  []string
+	responsePartitionLimit int32
+	topicName              string
+	partitionIndex         int32
+}
+
+type Partition struct {
+	errorCode      int16
+	partitionIndex int32
+}
+
+type Topic struct {
+	errorCode  int16
+	name       string
+	topicId    uuid.UUID
+	isInternal bool
+	partitions []Partition
+}
+
+type NextCursor struct {
+	topicName      string
+	partitionIndex int32
+}
+
+type DescribePartitionsResponse struct {
+	throttleTime int32
+	topics       []Topic
+	nextCursor   NextCursor
 }
 
 type RequestInterface interface {

@@ -5,6 +5,8 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+
+	"github.com/google/uuid"
 )
 
 // func parseHeader(buffer []byte) Request {
@@ -63,6 +65,8 @@ import (
 // 	encodeHexRequest(request)
 // }
 
+// ApiVersions
+
 func (request *ApiVersionsRequest) parse(buffer *bytes.Buffer) {
 	request.clientSoftwareName = readCompactString(buffer)
 	request.clientSoftwareVersion = readCompactString(buffer)
@@ -98,6 +102,36 @@ func (request *ApiVersionsRequest) generateResponse(commonResponse *Response) {
 	commonResponse.throttleTime = 0
 }
 
+// DescribePartitions
+
+func (request *DescribePartitionsRequest) parse(buffer *bytes.Buffer) {
+	request.names = getStringArray(buffer)
+	binary.Read(buffer, binary.BigEndian, &request.responsePartitionLimit)
+	ignoreTagField(buffer)
+}
+
+func (response *DescribePartitionsResponse) bytes(buffer *bytes.Buffer) {
+	binary.Write(buffer, binary.BigEndian, response.throttleTime)
+	binary.Write(buffer, binary.BigEndian, response.topics[0].errorCode)
+	binary.Write(buffer, binary.BigEndian, []byte(response.topics[0].name))
+	binary.Write(buffer, binary.BigEndian, response.topics[0].topicId)
+	addTagField(buffer)
+}
+
+func (request *DescribePartitionsRequest) generateResponse(commonResponse *Response) {
+	commonResponse.correlationId = request.correlationId
+	commonResponse.errorCode = getApiVersionsErrorCode(request.apiVersion)
+	commonResponse.numOfApiKeys = 1 + 1
+
+	commonResponse.numOfApiKeys += 1
+	dTVResponse := DescribePartitionsResponse{}
+	dTVResponse.throttleTime = 0
+	dTVResponse.topics = append(dTVResponse.topics, Topic{errorCode: 3, topicId: uuid.UUID{0}, name: request.topicName})
+	dTVResponse.bytes(&commonResponse.apiBytesData)
+
+	commonResponse.throttleTime = 0
+}
+
 func (response *Response) bytes(buffer *bytes.Buffer) {
 	message := &bytes.Buffer{}
 	binary.Write(message, binary.BigEndian, response.correlationId)
@@ -126,6 +160,10 @@ func parseRequest(buffer *bytes.Buffer) (RequestInterface, error) {
 		request := ApiVersionsRequest{RequestHeader: header}
 		request.parse(buffer)
 		return &request, nil
+	case 75:
+		request := DescribePartitionsRequest{RequestHeader: header}
+		request.parse(buffer)
+		return &request, nil
 	default:
 		err := fmt.Errorf("%d ApiKey is not Supported", header.apiKey)
 		return nil, err
@@ -136,6 +174,10 @@ func parseRequest(buffer *bytes.Buffer) (RequestInterface, error) {
 func processAndGenerateResponse(request RequestInterface) (ResponseInterface, error) {
 	switch request := request.(type) {
 	case *ApiVersionsRequest:
+		response := Response{}
+		request.generateResponse(&response)
+		return &response, nil
+	case *DescribePartitionsRequest:
 		response := Response{}
 		request.generateResponse(&response)
 		return &response, nil

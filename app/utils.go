@@ -49,6 +49,21 @@ func readNullableString(buffer *bytes.Buffer) string {
 	return str
 }
 
+func getStringArray(buffer *bytes.Buffer) []string {
+	stringArray := []string{}
+	arrayLength, err := binary.ReadVarint(buffer)
+	if err != nil {
+		fmt.Println("Error reading ARRAY length: ", err.Error())
+	}
+
+	for i := 0; i < int(arrayLength); i++ {
+		stringArray = append(stringArray, readCompactString(buffer))
+		ignoreTagField(buffer)
+	}
+
+	return stringArray
+}
+
 func ignoreTagField(buffer *bytes.Buffer) {
 	// not an ideal implementation, will figure this out later
 	_, err := binary.ReadUvarint(buffer)
