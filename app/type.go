@@ -69,6 +69,7 @@ type Topic struct {
 	errorCode  int16
 	name       string
 	topicId    uuid.UUID
+	isInternal bool
 	partitions []Partition
 }
 
