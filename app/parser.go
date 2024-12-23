@@ -146,6 +146,7 @@ func (request *DescribePartitionsRequest) generateResponse(commonResponse *Respo
 func (response *Response) bytes(buffer *bytes.Buffer) {
 	message := &bytes.Buffer{}
 	binary.Write(message, binary.BigEndian, response.correlationId)
+	addTagField(message)
 	binary.Write(message, binary.BigEndian, response.BytesData.Bytes())
 	response.messageSize = int32(message.Len())
 
