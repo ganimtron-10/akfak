@@ -25,10 +25,8 @@ type RequestHeader struct {
 type Response struct {
 	messageSize   int32
 	correlationId int32
-	errorCode     int16
-	numOfApiKeys  int8
-	apiBytesData  bytes.Buffer
-	throttleTime  int32
+
+	BytesData bytes.Buffer
 }
 
 // ApiVersions
@@ -39,10 +37,17 @@ type ApiVersionsRequest struct {
 	clientSoftwareVersion string
 }
 
-type ApiVersionsResponse struct {
-	apiKey     int16
+type ApiKey struct {
+	key        int16
 	minVersion int16
 	maxVersion int16
+}
+
+type ApiVersionsResponse struct {
+	errorCode    int16
+	numOfApiKeys int8
+	apiKeys      []ApiKey
+	throttleTime int32
 }
 
 // DescribePartitions
@@ -64,7 +69,6 @@ type Topic struct {
 	errorCode  int16
 	name       string
 	topicId    uuid.UUID
-	isInternal bool
 	partitions []Partition
 }
 

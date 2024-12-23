@@ -74,32 +74,44 @@ func (request *ApiVersionsRequest) parse(buffer *bytes.Buffer) {
 }
 
 func (response *ApiVersionsResponse) bytes(buffer *bytes.Buffer) {
-	binary.Write(buffer, binary.BigEndian, response.apiKey)
-	binary.Write(buffer, binary.BigEndian, response.minVersion)
-	binary.Write(buffer, binary.BigEndian, response.maxVersion)
+
+	binary.Write(buffer, binary.BigEndian, response.errorCode)
+	binary.Write(buffer, binary.BigEndian, response.numOfApiKeys)
+
+	for _, apiKey := range response.apiKeys {
+		binary.Write(buffer, binary.BigEndian, apiKey.key)
+		binary.Write(buffer, binary.BigEndian, apiKey.minVersion)
+		binary.Write(buffer, binary.BigEndian, apiKey.maxVersion)
+		addTagField(buffer)
+	}
+
+	binary.Write(buffer, binary.BigEndian, response.throttleTime)
 	addTagField(buffer)
 }
 
 func (request *ApiVersionsRequest) generateResponse(commonResponse *Response) {
 	commonResponse.correlationId = request.correlationId
-	commonResponse.errorCode = getApiVersionsErrorCode(request.apiVersion)
-	commonResponse.numOfApiKeys = 1 + 1
 
 	apiVersionResponse := ApiVersionsResponse{}
-	apiVersionResponse.apiKey = request.apiKey
-	apiVersionResponse.minVersion = 0
-	apiVersionResponse.maxVersion = 4
-	apiVersionResponse.bytes(&commonResponse.apiBytesData)
+	apiVersionResponse.errorCode = getApiVersionsErrorCode(request.apiVersion)
+	apiVersionResponse.throttleTime = 0
+
+	apiVersion := ApiKey{}
+	apiVersion.key = request.apiKey
+	apiVersion.minVersion = 0
+	apiVersion.maxVersion = 4
+	apiVersionResponse.apiKeys = append(apiVersionResponse.apiKeys, apiVersion)
 
 	// describe topic response
-	commonResponse.numOfApiKeys += 1
-	describeTopicVersionResponse := ApiVersionsResponse{}
-	describeTopicVersionResponse.apiKey = 75
-	describeTopicVersionResponse.minVersion = 0
-	describeTopicVersionResponse.maxVersion = 0
-	describeTopicVersionResponse.bytes(&commonResponse.apiBytesData)
+	describeTopicVersion := ApiKey{}
+	describeTopicVersion.key = 75
+	describeTopicVersion.minVersion = 0
+	describeTopicVersion.maxVersion = 0
+	apiVersionResponse.apiKeys = append(apiVersionResponse.apiKeys, describeTopicVersion)
 
-	commonResponse.throttleTime = 0
+	apiVersionResponse.numOfApiKeys = int8(len(apiVersionResponse.apiKeys) + 1)
+
+	apiVersionResponse.bytes(&commonResponse.BytesData)
 }
 
 // DescribePartitions
@@ -112,34 +124,29 @@ func (request *DescribePartitionsRequest) parse(buffer *bytes.Buffer) {
 
 func (response *DescribePartitionsResponse) bytes(buffer *bytes.Buffer) {
 	binary.Write(buffer, binary.BigEndian, response.throttleTime)
-	binary.Write(buffer, binary.BigEndian, response.topics[0].errorCode)
-	binary.Write(buffer, binary.BigEndian, []byte(response.topics[0].name))
-	binary.Write(buffer, binary.BigEndian, response.topics[0].topicId)
+	binary.Write(buffer, binary.BigEndian, binary.AppendVarint([]byte{}, int64(len(response.topics)+1)))
+	for _, topic := range response.topics {
+		binary.Write(buffer, binary.BigEndian, topic.errorCode)
+		writeCompactString(buffer, topic.name)
+		binary.Write(buffer, binary.BigEndian, topic.topicId)
+		addTagField(buffer)
+	}
 	addTagField(buffer)
 }
 
 func (request *DescribePartitionsRequest) generateResponse(commonResponse *Response) {
 	commonResponse.correlationId = request.correlationId
-	commonResponse.errorCode = getApiVersionsErrorCode(request.apiVersion)
-	commonResponse.numOfApiKeys = 1 + 1
 
-	commonResponse.numOfApiKeys += 1
 	dTVResponse := DescribePartitionsResponse{}
 	dTVResponse.throttleTime = 0
-	dTVResponse.topics = append(dTVResponse.topics, Topic{errorCode: 3, topicId: uuid.UUID{0}, name: request.topicName})
-	dTVResponse.bytes(&commonResponse.apiBytesData)
-
-	commonResponse.throttleTime = 0
+	dTVResponse.topics = append(dTVResponse.topics, Topic{errorCode: 3, name: request.topicName, topicId: uuid.UUID{0}, partitions: nil})
+	dTVResponse.bytes(&commonResponse.BytesData)
 }
 
 func (response *Response) bytes(buffer *bytes.Buffer) {
 	message := &bytes.Buffer{}
 	binary.Write(message, binary.BigEndian, response.correlationId)
-	binary.Write(message, binary.BigEndian, response.errorCode)
-	binary.Write(message, binary.BigEndian, response.numOfApiKeys)
-	binary.Write(message, binary.BigEndian, response.apiBytesData.Bytes())
-	binary.Write(message, binary.BigEndian, response.throttleTime)
-	addTagField(message)
+	binary.Write(message, binary.BigEndian, response.BytesData.Bytes())
 	response.messageSize = int32(message.Len())
 
 	binary.Write(buffer, binary.BigEndian, response.messageSize)

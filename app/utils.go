@@ -80,6 +80,13 @@ func addTagField(buffer *bytes.Buffer) {
 	}
 }
 
+func writeCompactString(buffer *bytes.Buffer, inputString string) {
+	strLength := len(inputString)
+
+	binary.Write(buffer, binary.BigEndian, binary.AppendVarint([]byte{}, int64(strLength+1)))
+	buffer.WriteString(inputString)
+}
+
 func getApiVersionsErrorCode(apiVersion int16) int16 {
 	switch apiVersion {
 	case 0, 1, 2, 3, 4:
