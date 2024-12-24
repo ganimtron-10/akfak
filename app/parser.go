@@ -134,11 +134,15 @@ func (response *DescribePartitionsResponse) bytes(buffer *bytes.Buffer) {
 		binary.Write(buffer, binary.BigEndian, topic.isInternal)
 
 		// partitions
-		binary.Write(buffer, binary.BigEndian, int8(len(topic.partitions)+1))
-		for _, partition := range topic.partitions {
-			binary.Write(buffer, binary.BigEndian, partition.errorCode)
-			binary.Write(buffer, binary.BigEndian, partition.partitionIndex)
-			addTagField(buffer)
+		if topic.partitions == nil {
+			binary.Write(buffer, binary.BigEndian, int8(0))
+		} else {
+			binary.Write(buffer, binary.BigEndian, int8(len(topic.partitions)+1))
+			for _, partition := range topic.partitions {
+				binary.Write(buffer, binary.BigEndian, partition.errorCode)
+				binary.Write(buffer, binary.BigEndian, partition.partitionIndex)
+				addTagField(buffer)
+			}
 		}
 
 		binary.Write(buffer, binary.BigEndian, topic.topicAuthorizedOperations)
