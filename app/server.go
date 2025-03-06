@@ -36,7 +36,16 @@ func handleConnection(connection net.Conn) {
 		}
 
 		bbuffer.Reset()
-		response.bytes(&bbuffer)
+		includeTagField := true
+		switch request.(type) {
+		case *ApiVersionsRequest:
+			includeTagField = false
+		case *DescribePartitionsRequest:
+			includeTagField = true
+		default:
+			includeTagField = true
+		}
+		response.bytes(&bbuffer, includeTagField)
 		_, err = connection.Write(bbuffer.Bytes())
 		if err != nil {
 			fmt.Println("Error writing response: ", err.Error())

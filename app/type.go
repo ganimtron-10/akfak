@@ -90,5 +90,5 @@ type RequestInterface interface {
 }
 
 type ResponseInterface interface {
-	bytes(buffer *bytes.Buffer)
+	bytes(buffer *bytes.Buffer, includetagField bool)
 }
