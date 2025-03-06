@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+
+	"github.com/google/uuid"
 )
 
 // type Request struct {
@@ -66,7 +68,7 @@ type Partition struct {
 type Topic struct {
 	errorCode                 int16
 	name                      string
-	topicId                   string
+	topicId                   uuid.UUID
 	isInternal                bool
 	partitions                []Partition
 	topicAuthorizedOperations int32

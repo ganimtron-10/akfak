@@ -130,7 +130,8 @@ func (response *DescribePartitionsResponse) bytes(buffer *bytes.Buffer) {
 	for _, topic := range response.topics {
 		binary.Write(buffer, binary.BigEndian, topic.errorCode)
 		writeCompactString(buffer, topic.name)
-		buffer.WriteString(topic.topicId)
+		// buffer.WriteString(topic.topicId)
+		binary.Write(buffer, binary.BigEndian, topic.topicId[:])
 		binary.Write(buffer, binary.BigEndian, topic.isInternal)
 
 		// partitions
@@ -161,7 +162,7 @@ func (request *DescribePartitionsRequest) generateResponse(commonResponse *Respo
 
 	dTVResponse := DescribePartitionsResponse{}
 	dTVResponse.throttleTime = 0
-	dTVResponse.topics = append(dTVResponse.topics, Topic{errorCode: 3, name: request.names[0], topicId: uuid.UUID{0}.String(), partitions: nil})
+	dTVResponse.topics = append(dTVResponse.topics, Topic{errorCode: 3, name: request.names[0], topicId: uuid.UUID{0}, partitions: nil})
 	dTVResponse.bytes(&commonResponse.BytesData)
 }
 
