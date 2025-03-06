@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 
 	"github.com/google/uuid"
 )
@@ -13,6 +14,7 @@ func (request *DescribePartitionsRequest) parse(buffer *bytes.Buffer) {
 	request.names = getStringArray(buffer)
 	binary.Read(buffer, binary.BigEndian, &request.responsePartitionLimit)
 	ignoreTagField(buffer)
+	fmt.Printf("%+v\n", request)
 }
 
 func (response *DescribePartitionsResponse) bytes(buffer *bytes.Buffer) {
@@ -51,6 +53,7 @@ func (response *DescribePartitionsResponse) bytes(buffer *bytes.Buffer) {
 	binary.Write(buffer, binary.BigEndian, int8(-1))
 
 	addTagField(buffer)
+	fmt.Printf("%+v\n", response)
 }
 
 func (request *DescribePartitionsRequest) generateResponse(commonResponse *Response) {

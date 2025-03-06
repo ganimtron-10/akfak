@@ -12,12 +12,12 @@ func (request *ApiVersionsRequest) parse(buffer *bytes.Buffer) {
 	request.clientSoftwareName = readCompactString(buffer)
 	request.clientSoftwareVersion = readCompactString(buffer)
 	ignoreTagField(buffer)
+	fmt.Printf("%+v\n", request)
 }
 
 func (response *ApiVersionsResponse) bytes(buffer *bytes.Buffer) {
 
 	binary.Write(buffer, binary.BigEndian, response.errorCode)
-	fmt.Println(response.numOfApiKeys)
 	binary.Write(buffer, binary.BigEndian, response.numOfApiKeys)
 
 	for _, apiKey := range response.apiKeys {
@@ -27,9 +27,9 @@ func (response *ApiVersionsResponse) bytes(buffer *bytes.Buffer) {
 		addTagField(buffer)
 	}
 
-	fmt.Println(response.throttleTime)
 	binary.Write(buffer, binary.BigEndian, response.throttleTime)
 	addTagField(buffer)
+	fmt.Printf("%+v\n", response)
 }
 
 func (request *ApiVersionsRequest) generateResponse(commonResponse *Response) {
