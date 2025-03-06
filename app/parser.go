@@ -5,8 +5,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-
-	"github.com/google/uuid"
 )
 
 // func parseHeader(buffer []byte) Request {
@@ -65,109 +63,6 @@ import (
 // 	encodeHexRequest(request)
 // }
 
-// ApiVersions
-
-func (request *ApiVersionsRequest) parse(buffer *bytes.Buffer) {
-	request.clientSoftwareName = readCompactString(buffer)
-	request.clientSoftwareVersion = readCompactString(buffer)
-	ignoreTagField(buffer)
-}
-
-func (response *ApiVersionsResponse) bytes(buffer *bytes.Buffer) {
-
-	binary.Write(buffer, binary.BigEndian, response.errorCode)
-	binary.Write(buffer, binary.BigEndian, response.numOfApiKeys)
-
-	for _, apiKey := range response.apiKeys {
-		binary.Write(buffer, binary.BigEndian, apiKey.key)
-		binary.Write(buffer, binary.BigEndian, apiKey.minVersion)
-		binary.Write(buffer, binary.BigEndian, apiKey.maxVersion)
-		addTagField(buffer)
-	}
-
-	binary.Write(buffer, binary.BigEndian, response.throttleTime)
-	addTagField(buffer)
-}
-
-func (request *ApiVersionsRequest) generateResponse(commonResponse *Response) {
-	commonResponse.correlationId = request.correlationId
-
-	apiVersionResponse := ApiVersionsResponse{}
-	apiVersionResponse.errorCode = getApiVersionsErrorCode(request.apiVersion)
-	apiVersionResponse.throttleTime = 0
-
-	apiVersion := ApiKey{}
-	apiVersion.key = request.apiKey
-	apiVersion.minVersion = 0
-	apiVersion.maxVersion = 4
-	apiVersionResponse.apiKeys = append(apiVersionResponse.apiKeys, apiVersion)
-
-	// describe topic response
-	describeTopicVersion := ApiKey{}
-	describeTopicVersion.key = 75
-	describeTopicVersion.minVersion = 0
-	describeTopicVersion.maxVersion = 0
-	apiVersionResponse.apiKeys = append(apiVersionResponse.apiKeys, describeTopicVersion)
-
-	apiVersionResponse.numOfApiKeys = int8(len(apiVersionResponse.apiKeys) + 1)
-
-	apiVersionResponse.bytes(&commonResponse.BytesData)
-}
-
-// DescribePartitions
-
-func (request *DescribePartitionsRequest) parse(buffer *bytes.Buffer) {
-	request.names = getStringArray(buffer)
-	binary.Read(buffer, binary.BigEndian, &request.responsePartitionLimit)
-	ignoreTagField(buffer)
-}
-
-func (response *DescribePartitionsResponse) bytes(buffer *bytes.Buffer) {
-	binary.Write(buffer, binary.BigEndian, response.throttleTime)
-
-	// topics
-	binary.Write(buffer, binary.BigEndian, int8(len(response.topics)+1))
-	for _, topic := range response.topics {
-		binary.Write(buffer, binary.BigEndian, topic.errorCode)
-		writeCompactString(buffer, topic.name)
-		// buffer.WriteString(topic.topicId)
-		binary.Write(buffer, binary.BigEndian, topic.topicId[:])
-		binary.Write(buffer, binary.BigEndian, topic.isInternal)
-
-		// partitions
-		if topic.partitions == nil {
-			binary.Write(buffer, binary.BigEndian, int8(1))
-		} else {
-			binary.Write(buffer, binary.BigEndian, int8(len(topic.partitions)+1))
-			for _, partition := range topic.partitions {
-				binary.Write(buffer, binary.BigEndian, partition.errorCode)
-				binary.Write(buffer, binary.BigEndian, partition.partitionIndex)
-				addTagField(buffer)
-			}
-		}
-
-		binary.Write(buffer, binary.BigEndian, topic.topicAuthorizedOperations)
-		addTagField(buffer)
-	}
-
-	// next cursor
-	// binary.Write(buffer, binary.BigEndian, int8(1))
-	// writeCompactString(buffer, response.nextCursor.topicName)
-	// binary.Write(buffer, binary.BigEndian, response.nextCursor.partitionIndex)
-	binary.Write(buffer, binary.BigEndian, int8(-1))
-
-	addTagField(buffer)
-}
-
-func (request *DescribePartitionsRequest) generateResponse(commonResponse *Response) {
-	commonResponse.correlationId = request.correlationId
-
-	dTVResponse := DescribePartitionsResponse{}
-	dTVResponse.throttleTime = 0
-	dTVResponse.topics = append(dTVResponse.topics, Topic{errorCode: 3, name: request.names[0], topicId: uuid.UUID{0}, partitions: nil})
-	dTVResponse.bytes(&commonResponse.BytesData)
-}
-
 func (response *Response) bytes(buffer *bytes.Buffer) {
 	message := &bytes.Buffer{}
 	binary.Write(message, binary.BigEndian, response.correlationId)
@@ -215,7 +110,7 @@ func processAndGenerateResponse(request RequestInterface) (ResponseInterface, er
 		request.generateResponse(&response)
 		return &response, nil
 	default:
-		err := errors.New("Request type is not Supported")
+		err := errors.New("Request type is not supported")
 		return nil, err
 	}
 }
