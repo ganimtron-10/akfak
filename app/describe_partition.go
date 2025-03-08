@@ -61,6 +61,6 @@ func (request *DescribePartitionsRequest) generateResponse(commonResponse *Respo
 
 	dTVResponse := DescribePartitionsResponse{}
 	dTVResponse.throttleTime = 0
-	dTVResponse.topics = append(dTVResponse.topics, Topic{errorCode: 3, name: request.names[0], topicId: uuid.UUID{0}, partitions: nil})
+	dTVResponse.topics = append(dTVResponse.topics, Topic{errorCode: 0, name: request.names[0], topicId: uuid.UUID{0}, partitions: nil})
 	dTVResponse.bytes(&commonResponse.BytesData)
 }
