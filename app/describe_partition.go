@@ -76,5 +76,4 @@ func printClusterMetadata() {
 		fmt.Printf("Error while reading cluster metadata log file, Error Details: %s", err)
 	}
 	fmt.Printf("%+v\n", fileData)
-	fmt.Println(string(fileData))
 }
