@@ -63,10 +63,10 @@ import (
 // 	encodeHexRequest(request)
 // }
 
-func (response *Response) bytes(buffer *bytes.Buffer, includeTagField bool) {
+func (response *Response) bytes(buffer *bytes.Buffer, useVersion2 bool) {
 	message := &bytes.Buffer{}
 	binary.Write(message, binary.BigEndian, response.correlationId)
-	if includeTagField {
+	if useVersion2 {
 		addTagField(message)
 	}
 	binary.Write(message, binary.BigEndian, response.BytesData.Bytes())
