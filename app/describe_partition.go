@@ -43,6 +43,77 @@ type DescribePartitionsResponse struct {
 	nextCursor   NextCursor
 }
 
+type PartitionRecord struct {
+	frameVersion                  uint8
+	recordType                    uint8
+	version                       uint8
+	partitionId                   uuid.UUID
+	topicId                       uuid.UUID
+	lengthOfReplicaArray          uint64
+	replicaArray                  []uint32
+	lengthOfInSyncReplicaArray    uint64
+	inSyncReplicaArray            []uint32
+	lengthOfRemovingReplicasArray uint64
+	lengthOfAddingReplicasArray   uint64
+	leader                        uint32
+	leaderEpoch                   uint32
+	partitionEpoch                uint32
+	lengthOfDirectoriesArray      uint64
+	directoriesArray              []uuid.UUID
+	taggedFieldCount              uint64
+}
+
+type TopicRecord struct {
+	frameVersion     uint8
+	recordType       uint8
+	version          uint8
+	nameLength       uint64
+	name             string
+	topicId          uuid.UUID
+	taggedFieldCount uint64
+}
+
+type Record struct {
+	length             int64
+	attributes         int8
+	timestampDelta     int64
+	offsetDelta        int64
+	keyLength          int64
+	key                []byte
+	valueLength        int64
+	TopicRecord        TopicRecord
+	PartitionRecord    PartitionRecord
+	FeatureLevelRecord FeatureLevelRecord
+	headerArrayCount   uint64
+}
+
+type FeatureLevelRecord struct {
+	frameVersion     uint8
+	recordType       uint8
+	version          uint8
+	nameLength       uint64
+	name             string
+	featureLevel     uint16
+	taggedFieldCount uint64
+}
+
+type ClusterMetadata struct {
+	baseOffset           uint64
+	batchLength          uint32
+	partitionLeaderEpoch uint32
+	magicByte            uint8
+	crc                  uint32
+	attributes           uint16
+	lastOffsetDelta      uint32
+	baseTimestamp        uint64
+	maxTimestamp         uint64
+	producerId           uint64
+	producerEpoch        uint16
+	baseSequence         uint32
+	recordsLength        uint32
+	records              []Record
+}
+
 func (request *DescribePartitionsRequest) parse(buffer *bytes.Buffer) {
 	request.names = getStringArray(buffer)
 	binary.Read(buffer, binary.BigEndian, &request.responsePartitionLimit)
