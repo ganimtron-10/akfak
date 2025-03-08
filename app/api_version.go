@@ -8,6 +8,25 @@ import (
 
 // ApiVersions
 
+type ApiVersionsRequest struct {
+	RequestHeader
+	clientSoftwareName    string
+	clientSoftwareVersion string
+}
+
+type ApiKey struct {
+	key        int16
+	minVersion int16
+	maxVersion int16
+}
+
+type ApiVersionsResponse struct {
+	errorCode    int16
+	numOfApiKeys int8
+	apiKeys      []ApiKey
+	throttleTime int32
+}
+
 func (request *ApiVersionsRequest) parse(buffer *bytes.Buffer) {
 	request.clientSoftwareName = readCompactString(buffer)
 	request.clientSoftwareVersion = readCompactString(buffer)

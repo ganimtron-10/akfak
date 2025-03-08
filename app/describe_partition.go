@@ -4,12 +4,44 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"os"
 
 	"github.com/google/uuid"
 )
 
 // DescribePartitions
+
+type DescribePartitionsRequest struct {
+	RequestHeader
+	names                  []string
+	responsePartitionLimit int32
+	topicName              string
+	partitionIndex         int32
+}
+
+type Partition struct {
+	errorCode      int16
+	partitionIndex int32
+}
+
+type Topic struct {
+	errorCode                 int16
+	name                      string
+	topicId                   uuid.UUID
+	isInternal                bool
+	partitions                []Partition
+	topicAuthorizedOperations int32
+}
+
+type NextCursor struct {
+	topicName      string
+	partitionIndex int32
+}
+
+type DescribePartitionsResponse struct {
+	throttleTime int32
+	topics       []Topic
+	nextCursor   NextCursor
+}
 
 func (request *DescribePartitionsRequest) parse(buffer *bytes.Buffer) {
 	request.names = getStringArray(buffer)
@@ -19,8 +51,6 @@ func (request *DescribePartitionsRequest) parse(buffer *bytes.Buffer) {
 }
 
 func (response *DescribePartitionsResponse) bytes(buffer *bytes.Buffer) {
-
-	printClusterMetadata()
 
 	binary.Write(buffer, binary.BigEndian, response.throttleTime)
 
@@ -67,13 +97,4 @@ func (request *DescribePartitionsRequest) generateResponse(commonResponse *Respo
 	dTVResponse.throttleTime = 0
 	dTVResponse.topics = append(dTVResponse.topics, Topic{errorCode: 0, name: request.names[0], topicId: uuid.UUID{0}, partitions: nil})
 	dTVResponse.bytes(&commonResponse.BytesData)
-}
-
-func printClusterMetadata() {
-	clusterMetadataLogFileName := "/tmp/kraft-combined-logs/__cluster_metadata-0/00000000000000000000.log"
-	fileData, err := os.ReadFile(clusterMetadataLogFileName)
-	if err != nil {
-		fmt.Printf("Error while reading cluster metadata log file, Error Details: %s", err)
-	}
-	fmt.Printf("%+v\n", fileData)
 }
