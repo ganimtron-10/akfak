@@ -87,6 +87,15 @@ func writeCompactString(buffer *bytes.Buffer, inputString string) {
 	buffer.WriteString(inputString)
 }
 
+func writeCompactArray(buffer *bytes.Buffer, inputArray []int32) {
+	arrayLength := len(inputArray)
+
+	binary.Write(buffer, binary.BigEndian, binary.AppendUvarint([]byte{}, uint64(arrayLength+1)))
+	for _, element := range inputArray {
+		binary.Write(buffer, binary.BigEndian, element)
+	}
+}
+
 func getApiVersionsErrorCode(apiVersion int16) int16 {
 	switch apiVersion {
 	case 0, 1, 2, 3, 4:
