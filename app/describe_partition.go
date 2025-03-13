@@ -29,7 +29,7 @@ type Topic struct {
 	name                      string
 	topicId                   uuid.UUID
 	isInternal                bool
-	partitions                []Partition
+	partitions                []*Partition
 	topicAuthorizedOperations int32
 }
 
@@ -216,7 +216,7 @@ func addClusterMetadataIntoResponse(response *DescribePartitionsResponse, cluste
 
 				topic, ok := topicPartitionMap[record.PartitionRecord.topicId]
 				if ok {
-					topic.partitions = append(topic.partitions, *partition)
+					topic.partitions = append(topic.partitions, partition)
 				}
 			case 12:
 				// featureRecord
