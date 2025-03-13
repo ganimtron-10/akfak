@@ -164,12 +164,12 @@ func (request *DescribePartitionsRequest) generateResponse(commonResponse *Respo
 	dTVResponse.throttleTime = 0
 	// dTVResponse.topics = append(dTVResponse.topics, Topic{errorCode: 0, name: request.names[0], topicId: uuid.UUID{0}, partitions: nil})
 
-	clusterMetadataLog, err := readClusterMetadata()
+	clusterMetadataLogs, err := readClusterMetadata()
 	if err != nil {
 		fmt.Printf("Error while reading cluster data. Error details: %s", err)
 	}
 
-	err = addClusterMetadataIntoResponse(&dTVResponse, clusterMetadataLog)
+	err = addClusterMetadataIntoResponse(&dTVResponse, clusterMetadataLogs)
 	if err != nil {
 		fmt.Printf("Error while adding cluster data into repsonse. Error details: %s", err)
 	}
@@ -178,46 +178,48 @@ func (request *DescribePartitionsRequest) generateResponse(commonResponse *Respo
 
 }
 
-func addClusterMetadataIntoResponse(response *DescribePartitionsResponse, clusterMetadata *ClusterMetadata) error {
+func addClusterMetadataIntoResponse(response *DescribePartitionsResponse, clusterMetadataLogs []*ClusterMetadata) error {
 
 	topicPartitionMap := make(map[uuid.UUID]*Topic)
 
-	fmt.Printf("%+v\n", clusterMetadata.records[0])
+	for _, clusterMetadata := range clusterMetadataLogs {
+		fmt.Printf("%+v\n%d\n", clusterMetadata.records[0], clusterMetadata.recordsLength)
 
-	for _, record := range clusterMetadata.records {
-		switch record.recordType {
-		case 2:
-			// topicRecord
-			topic := &Topic{
-				errorCode:  0,
-				name:       record.TopicRecord.name,
-				topicId:    record.TopicRecord.topicId,
-				isInternal: false,
-			}
+		for _, record := range clusterMetadata.records {
+			switch record.recordType {
+			case 2:
+				// topicRecord
+				topic := &Topic{
+					errorCode:  0,
+					name:       record.TopicRecord.name,
+					topicId:    record.TopicRecord.topicId,
+					isInternal: false,
+				}
 
-			topicPartitionMap[topic.topicId] = topic
-			response.topics = append(response.topics, *topic)
-		case 3:
-			// partitionRecord
-			partition := &Partition{
-				errorCode:      0,
-				partitionIndex: record.PartitionRecord.partitionId,
-			}
+				topicPartitionMap[topic.topicId] = topic
+				response.topics = append(response.topics, *topic)
+			case 3:
+				// partitionRecord
+				partition := &Partition{
+					errorCode:      0,
+					partitionIndex: record.PartitionRecord.partitionId,
+				}
 
-			topic, ok := topicPartitionMap[record.PartitionRecord.topicId]
-			if ok {
-				topic.partitions = append(topic.partitions, *partition)
+				topic, ok := topicPartitionMap[record.PartitionRecord.topicId]
+				if ok {
+					topic.partitions = append(topic.partitions, *partition)
+				}
+			case 12:
+				// featureRecord
+				// Skipping for now
 			}
-		case 12:
-			// featureRecord
-			// Skipping for now
 		}
 	}
 
 	return nil
 }
 
-func readClusterMetadata() (*ClusterMetadata, error) {
+func readClusterMetadata() ([]*ClusterMetadata, error) {
 
 	clusterMetadataLogFileName := "/tmp/kraft-combined-logs/__cluster_metadata-0/00000000000000000000.log"
 	fileData, err := os.ReadFile(clusterMetadataLogFileName)
@@ -239,13 +241,19 @@ func readClusterMetadata() (*ClusterMetadata, error) {
 	// // _ = clusterMetadata
 	// fmt.Printf("%+v\n", clusterMetadata)
 
-	clusterMetadata, err := parseClusterMetadata(bytes.NewBuffer(fileData))
-	if err != nil {
-		return &ClusterMetadata{}, err
-	}
-	fmt.Printf("%+v\n", clusterMetadata)
+	clusterMetadataLogRecords := []*ClusterMetadata{}
+	fileBuffer := bytes.NewBuffer(fileData)
 
-	return clusterMetadata, nil
+	for fileBuffer.Available() > 0 {
+		clusterMetadata, err := parseClusterMetadata(fileBuffer)
+		if err != nil {
+			return []*ClusterMetadata{}, err
+		}
+		fmt.Printf("%+v\n", clusterMetadata)
+		clusterMetadataLogRecords = append(clusterMetadataLogRecords, clusterMetadata)
+	}
+
+	return clusterMetadataLogRecords, nil
 }
 
 func parseClusterMetadata(fileBytes *bytes.Buffer) (*ClusterMetadata, error) {
