@@ -152,7 +152,7 @@ func (response *DescribePartitionsResponse) bytes(buffer *bytes.Buffer, request 
 		binary.Write(buffer, binary.BigEndian, topic.topicId[:])
 		binary.Write(buffer, binary.BigEndian, topic.isInternal)
 
-		fmt.Printf("\nPartition Record in bytes: %+v", topic.partitions)
+		// fmt.Printf("\nPartition Record in bytes: %+v", topic.partitions)
 
 		if topic.partitions == nil {
 			binary.Write(buffer, binary.BigEndian, int8(1))
@@ -242,8 +242,8 @@ func addClusterMetadataIntoResponse(response *DescribePartitionsResponse, cluste
 					topic.partitions = append(topic.partitions, partition)
 				}
 
-				fmt.Printf("\nTopic details: %+v", topic)
-				fmt.Printf("\nPartition Record adding in response: %+v", record.PartitionRecord)
+				// fmt.Printf("\nTopic details: %+v", topic)
+				// fmt.Printf("\nPartition Record adding in response: %+v", record.PartitionRecord)
 			case 12:
 				// featureRecord
 				// Skipping for now
@@ -379,7 +379,7 @@ func parseClusterMetadata(fileBuffer *bytes.Buffer) (*ClusterMetadata, error) {
 			partitionRecord.taggedFieldCount, _ = binary.ReadUvarint(valueBuf)
 			record.PartitionRecord = partitionRecord
 
-			fmt.Printf("\nPartition Record: %+v", partitionRecord)
+			// fmt.Printf("\nPartition Record: %+v", partitionRecord)
 		case 12:
 			featureRecord := FeatureLevelRecord{}
 			featureRecord.frameVersion = record.frameVersion
