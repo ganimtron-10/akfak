@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"slices"
 
 	"github.com/google/uuid"
 )
@@ -138,9 +137,23 @@ func (response *DescribePartitionsResponse) bytes(buffer *bytes.Buffer, request 
 
 	topicsToSend := []*Topic{}
 
-	for _, topic := range response.topics {
-		if slices.Contains(request.names, topic.name) {
-			topicsToSend = append(topicsToSend, topic)
+	// for _, topic := range response.topics {
+	// 	if slices.Contains(request.names, topic.name) {
+	// 		topicsToSend = append(topicsToSend, topic)
+	// 	}
+	// }
+
+	for _, requestTopicName := range request.names {
+		foundTopic := false
+		for _, topic := range response.topics {
+			if topic.name == requestTopicName {
+				topicsToSend = append(topicsToSend, topic)
+				foundTopic = true
+			}
+		}
+
+		if !foundTopic {
+			topicsToSend = append(topicsToSend, &Topic{errorCode: 3, name: requestTopicName})
 		}
 	}
 
