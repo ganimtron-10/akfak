@@ -113,7 +113,7 @@ type ClusterMetadata struct {
 	producerId           uint64
 	producerEpoch        uint16
 	baseSequence         uint32
-	recordsLength        int32
+	recordsLength        uint32
 	records              []*Record
 }
 
@@ -234,6 +234,8 @@ func readClusterMetadata() ([]*ClusterMetadata, error) {
 
 	// fileData := []byte{0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 228, 0, 0, 0, 1, 2, 36, 219, 18, 221, 0, 0, 0, 0, 0, 2, 0, 0, 1, 145, 224, 91, 45, 21, 0, 0, 1, 145, 224, 91, 45, 21, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 3, 60, 0, 0, 0, 1, 48, 1, 2, 0, 4, 115, 97, 122, 0, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 145, 0, 0, 144, 1, 0, 0, 2, 1, 130, 1, 1, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 145, 2, 0, 0, 0, 1, 2, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 16, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 1, 0, 0, 144, 1, 0, 0, 4, 1, 130, 1, 1, 3, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 145, 2, 0, 0, 0, 1, 2, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 16, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 1, 0, 0}
 
+	// fileData := []byte{0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 79, 0, 0, 0, 1, 2, 176, 105, 69, 124, 0, 0, 0, 0, 0, 0, 0, 0, 1, 145, 224, 90, 248, 24, 0, 0, 1, 145, 224, 90, 248, 24, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 1, 58, 0, 0, 0, 1, 46, 1, 12, 0, 17, 109, 101, 116, 97, 100, 97, 116, 97, 46, 118, 101, 114, 115, 105, 111, 110, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 154, 0, 0, 0, 1, 2, 52, 167, 186, 136, 0, 0, 0, 0, 0, 1, 0, 0, 1, 145, 224, 91, 45, 21, 0, 0, 1, 145, 224, 91, 45, 21, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 2, 60, 0, 0, 0, 1, 48, 1, 2, 0, 4, 98, 97, 122, 0, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 83, 0, 0, 144, 1, 0, 0, 2, 1, 130, 1, 1, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 83, 2, 0, 0, 0, 1, 2, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 16, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 154, 0, 0, 0, 1, 2, 34, 245, 28, 91, 0, 0, 0, 0, 0, 1, 0, 0, 1, 145, 224, 91, 45, 21, 0, 0, 1, 145, 224, 91, 45, 21, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 2, 60, 0, 0, 0, 1, 48, 1, 2, 0, 4, 102, 111, 111, 0, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 33, 0, 0, 144, 1, 0, 0, 2, 1, 130, 1, 1, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 33, 2, 0, 0, 0, 1, 2, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 16, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 228, 0, 0, 0, 1, 2, 73, 229, 226, 168, 0, 0, 0, 0, 0, 2, 0, 0, 1, 145, 224, 91, 45, 21, 0, 0, 1, 145, 224, 91, 45, 21, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 3, 60, 0, 0, 0, 1, 48, 1, 2, 0, 4, 112, 97, 120, 0, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 133, 0, 0, 144, 1, 0, 0, 2, 1, 130, 1, 1, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 133, 2, 0, 0, 0, 1, 2, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 16, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 1, 0, 0, 144, 1, 0, 0, 4, 1, 130, 1, 1, 3, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 133, 2, 0, 0, 0, 1, 2, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 16, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 1, 0, 0}
+
 	// clusterMetadata, err := parseClusterMetadata(bytes.NewBuffer(fileData))
 	// if err != nil {
 	// 	return &ClusterMetadata{}, err
@@ -244,7 +246,7 @@ func readClusterMetadata() ([]*ClusterMetadata, error) {
 	clusterMetadataLogRecords := []*ClusterMetadata{}
 	fileBuffer := bytes.NewBuffer(fileData)
 
-	for fileBuffer.Available() > 0 {
+	for fileBuffer.Len() > 0 {
 		clusterMetadata, err := parseClusterMetadata(fileBuffer)
 		if err != nil {
 			return []*ClusterMetadata{}, err
@@ -256,45 +258,45 @@ func readClusterMetadata() ([]*ClusterMetadata, error) {
 	return clusterMetadataLogRecords, nil
 }
 
-func parseClusterMetadata(fileBytes *bytes.Buffer) (*ClusterMetadata, error) {
+func parseClusterMetadata(fileBuffer *bytes.Buffer) (*ClusterMetadata, error) {
 	clusterMetadata := &ClusterMetadata{}
 
-	binary.Read(fileBytes, binary.BigEndian, &clusterMetadata.baseOffset)
-	binary.Read(fileBytes, binary.BigEndian, &clusterMetadata.batchLength)
-	binary.Read(fileBytes, binary.BigEndian, &clusterMetadata.partitionLeaderEpoch)
-	binary.Read(fileBytes, binary.BigEndian, &clusterMetadata.magicByte)
-	binary.Read(fileBytes, binary.BigEndian, &clusterMetadata.crc)
-	binary.Read(fileBytes, binary.BigEndian, &clusterMetadata.attributes)
-	binary.Read(fileBytes, binary.BigEndian, &clusterMetadata.lastOffsetDelta)
-	binary.Read(fileBytes, binary.BigEndian, &clusterMetadata.baseTimestamp)
-	binary.Read(fileBytes, binary.BigEndian, &clusterMetadata.maxTimestamp)
-	binary.Read(fileBytes, binary.BigEndian, &clusterMetadata.producerId)
-	binary.Read(fileBytes, binary.BigEndian, &clusterMetadata.producerEpoch)
-	binary.Read(fileBytes, binary.BigEndian, &clusterMetadata.baseSequence)
-	binary.Read(fileBytes, binary.BigEndian, &clusterMetadata.recordsLength)
+	binary.Read(fileBuffer, binary.BigEndian, &clusterMetadata.baseOffset)
+	binary.Read(fileBuffer, binary.BigEndian, &clusterMetadata.batchLength)
+	binary.Read(fileBuffer, binary.BigEndian, &clusterMetadata.partitionLeaderEpoch)
+	binary.Read(fileBuffer, binary.BigEndian, &clusterMetadata.magicByte)
+	binary.Read(fileBuffer, binary.BigEndian, &clusterMetadata.crc)
+	binary.Read(fileBuffer, binary.BigEndian, &clusterMetadata.attributes)
+	binary.Read(fileBuffer, binary.BigEndian, &clusterMetadata.lastOffsetDelta)
+	binary.Read(fileBuffer, binary.BigEndian, &clusterMetadata.baseTimestamp)
+	binary.Read(fileBuffer, binary.BigEndian, &clusterMetadata.maxTimestamp)
+	binary.Read(fileBuffer, binary.BigEndian, &clusterMetadata.producerId)
+	binary.Read(fileBuffer, binary.BigEndian, &clusterMetadata.producerEpoch)
+	binary.Read(fileBuffer, binary.BigEndian, &clusterMetadata.baseSequence)
+	binary.Read(fileBuffer, binary.BigEndian, &clusterMetadata.recordsLength)
 
-	fmt.Printf(`ClusterMetadata Records Length: %d`, clusterMetadata.recordsLength)
+	fmt.Printf(`ClusterMetadata Records Length: %d\n`, clusterMetadata.recordsLength)
 
-	for i := int32(0); i < clusterMetadata.recordsLength; i++ {
+	for i := uint32(0); i < clusterMetadata.recordsLength; i++ {
 		record := Record{}
 
-		length, _ := binary.ReadVarint(fileBytes)
+		length, _ := binary.ReadVarint(fileBuffer)
 		record.length = length
-		_ = binary.Read(fileBytes, binary.BigEndian, &record.attributes)
-		timestampDelta, _ := binary.ReadVarint(fileBytes)
+		_ = binary.Read(fileBuffer, binary.BigEndian, &record.attributes)
+		timestampDelta, _ := binary.ReadVarint(fileBuffer)
 		record.timestampDelta = timestampDelta
-		offsetDelta, _ := binary.ReadVarint(fileBytes)
+		offsetDelta, _ := binary.ReadVarint(fileBuffer)
 		record.offsetDelta = offsetDelta
-		keyLength, _ := binary.ReadVarint(fileBytes)
+		keyLength, _ := binary.ReadVarint(fileBuffer)
 		record.keyLength = keyLength
 		if keyLength > 0 {
 			record.key = make([]byte, keyLength)
-			_, _ = io.ReadFull(fileBytes, record.key)
+			_, _ = io.ReadFull(fileBuffer, record.key)
 		}
-		valueLength, _ := binary.ReadVarint(fileBytes)
+		valueLength, _ := binary.ReadVarint(fileBuffer)
 		record.valueLength = valueLength
 		valueBytes := make([]byte, valueLength)
-		_, _ = io.ReadFull(fileBytes, valueBytes)
+		_, _ = io.ReadFull(fileBuffer, valueBytes)
 		valueBuf := bytes.NewBuffer(valueBytes)
 		_ = binary.Read(valueBuf, binary.BigEndian, &record.frameVersion)
 		_ = binary.Read(valueBuf, binary.BigEndian, &record.recordType)
@@ -352,6 +354,7 @@ func parseClusterMetadata(fileBytes *bytes.Buffer) (*ClusterMetadata, error) {
 			featureRecord.taggedFieldCount, _ = binary.ReadUvarint(valueBuf)
 			record.FeatureLevelRecord = featureRecord
 		}
+		record.headerArrayCount, _ = binary.ReadUvarint(fileBuffer)
 		clusterMetadata.records = append(clusterMetadata.records, &record)
 	}
 
