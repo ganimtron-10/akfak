@@ -40,7 +40,7 @@ type NextCursor struct {
 
 type DescribePartitionsResponse struct {
 	throttleTime int32
-	topics       []Topic
+	topics       []*Topic
 	nextCursor   NextCursor
 }
 
@@ -133,7 +133,7 @@ func (response *DescribePartitionsResponse) bytes(buffer *bytes.Buffer, request 
 
 	for _, topic := range response.topics {
 		if slices.Contains(request.names, topic.name) {
-			topicsToSend = append(topicsToSend, &topic)
+			topicsToSend = append(topicsToSend, topic)
 		}
 	}
 
@@ -208,7 +208,7 @@ func addClusterMetadataIntoResponse(response *DescribePartitionsResponse, cluste
 				}
 
 				topicPartitionMap[topic.topicId] = topic
-				response.topics = append(response.topics, *topic)
+				response.topics = append(response.topics, topic)
 			case 3:
 				// partitionRecord
 				partition := &Partition{
