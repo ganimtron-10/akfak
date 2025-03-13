@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
 
 	"github.com/google/uuid"
 )
@@ -124,31 +125,33 @@ func (request *DescribePartitionsRequest) parse(buffer *bytes.Buffer) {
 	fmt.Printf("%+v\n", request)
 }
 
-func (response *DescribePartitionsResponse) bytes(buffer *bytes.Buffer) {
+func (response *DescribePartitionsResponse) bytes(buffer *bytes.Buffer, request *DescribePartitionsRequest) {
 
 	binary.Write(buffer, binary.BigEndian, response.throttleTime)
 
 	binary.Write(buffer, binary.BigEndian, int8(len(response.topics)+1))
 	for _, topic := range response.topics {
-		binary.Write(buffer, binary.BigEndian, topic.errorCode)
-		writeCompactString(buffer, topic.name)
+		if slices.Contains(request.names, topic.name) {
+			binary.Write(buffer, binary.BigEndian, topic.errorCode)
+			writeCompactString(buffer, topic.name)
 
-		binary.Write(buffer, binary.BigEndian, topic.topicId[:])
-		binary.Write(buffer, binary.BigEndian, topic.isInternal)
+			binary.Write(buffer, binary.BigEndian, topic.topicId[:])
+			binary.Write(buffer, binary.BigEndian, topic.isInternal)
 
-		if topic.partitions == nil {
-			binary.Write(buffer, binary.BigEndian, int8(1))
-		} else {
-			binary.Write(buffer, binary.BigEndian, int8(len(topic.partitions)+1))
-			for _, partition := range topic.partitions {
-				binary.Write(buffer, binary.BigEndian, partition.errorCode)
-				binary.Write(buffer, binary.BigEndian, partition.partitionIndex)
-				addTagField(buffer)
+			if topic.partitions == nil {
+				binary.Write(buffer, binary.BigEndian, int8(1))
+			} else {
+				binary.Write(buffer, binary.BigEndian, int8(len(topic.partitions)+1))
+				for _, partition := range topic.partitions {
+					binary.Write(buffer, binary.BigEndian, partition.errorCode)
+					binary.Write(buffer, binary.BigEndian, partition.partitionIndex)
+					addTagField(buffer)
+				}
 			}
-		}
 
-		binary.Write(buffer, binary.BigEndian, topic.topicAuthorizedOperations)
-		addTagField(buffer)
+			binary.Write(buffer, binary.BigEndian, topic.topicAuthorizedOperations)
+			addTagField(buffer)
+		}
 	}
 
 	binary.Write(buffer, binary.BigEndian, int8(-1))
@@ -174,7 +177,7 @@ func (request *DescribePartitionsRequest) generateResponse(commonResponse *Respo
 		fmt.Printf("Error while adding cluster data into repsonse. Error details: %s", err)
 	}
 
-	dTVResponse.bytes(&commonResponse.BytesData)
+	dTVResponse.bytes(&commonResponse.BytesData, request)
 
 }
 
