@@ -20,8 +20,15 @@ type DescribePartitionsRequest struct {
 }
 
 type Partition struct {
-	errorCode      int16
-	partitionIndex int32
+	errorCode              int16
+	partitionIndex         int32
+	leaderId               int32
+	leaderEpoch            int32
+	replicaNodes           []int32
+	isrNodes               []int32
+	eligibleLeaderReplicas []int32
+	lastKnownElr           []int32
+	offlineReplicas        []int32
 }
 
 type Topic struct {
@@ -51,13 +58,13 @@ type PartitionRecord struct {
 	partitionId                   int32
 	topicId                       uuid.UUID
 	lengthOfReplicaArray          uint64
-	replicaArray                  []uint32
+	replicaArray                  []int32
 	lengthOfInSyncReplicaArray    uint64
-	inSyncReplicaArray            []uint32
+	inSyncReplicaArray            []int32
 	lengthOfRemovingReplicasArray uint64
 	lengthOfAddingReplicasArray   uint64
-	leader                        uint32
-	leaderEpoch                   uint32
+	leader                        int32
+	leaderEpoch                   int32
 	partitionEpoch                uint32
 	lengthOfDirectoriesArray      uint64
 	directoriesArray              []uuid.UUID
@@ -154,6 +161,13 @@ func (response *DescribePartitionsResponse) bytes(buffer *bytes.Buffer, request 
 			for _, partition := range topic.partitions {
 				binary.Write(buffer, binary.BigEndian, partition.errorCode)
 				binary.Write(buffer, binary.BigEndian, partition.partitionIndex)
+				binary.Write(buffer, binary.BigEndian, partition.leaderId)
+				binary.Write(buffer, binary.BigEndian, partition.leaderEpoch)
+				writeCompactArray(buffer, partition.replicaNodes)
+				writeCompactArray(buffer, partition.isrNodes)
+				writeCompactArray(buffer, partition.eligibleLeaderReplicas)
+				writeCompactArray(buffer, partition.lastKnownElr)
+				writeCompactArray(buffer, partition.offlineReplicas)
 				addTagField(buffer)
 			}
 		}
@@ -212,8 +226,15 @@ func addClusterMetadataIntoResponse(response *DescribePartitionsResponse, cluste
 			case 3:
 				// partitionRecord
 				partition := &Partition{
-					errorCode:      0,
-					partitionIndex: record.PartitionRecord.partitionId,
+					errorCode:              0,
+					partitionIndex:         record.PartitionRecord.partitionId,
+					leaderId:               record.PartitionRecord.leader,
+					leaderEpoch:            record.PartitionRecord.leaderEpoch,
+					replicaNodes:           record.PartitionRecord.replicaArray,
+					isrNodes:               record.PartitionRecord.inSyncReplicaArray,
+					eligibleLeaderReplicas: []int32{},
+					lastKnownElr:           []int32{},
+					offlineReplicas:        []int32{},
 				}
 
 				topic, ok := topicPartitionMap[record.PartitionRecord.topicId]
@@ -335,12 +356,12 @@ func parseClusterMetadata(fileBuffer *bytes.Buffer) (*ClusterMetadata, error) {
 			_ = binary.Read(valueBuf, binary.BigEndian, &partitionRecord.partitionId)
 			_ = binary.Read(valueBuf, binary.BigEndian, &partitionRecord.topicId)
 			partitionRecord.lengthOfReplicaArray, _ = binary.ReadUvarint(valueBuf)
-			partitionRecord.replicaArray = make([]uint32, partitionRecord.lengthOfReplicaArray)
+			partitionRecord.replicaArray = make([]int32, partitionRecord.lengthOfReplicaArray)
 			for j := uint64(0); j < partitionRecord.lengthOfReplicaArray; j++ {
 				_ = binary.Read(valueBuf, binary.BigEndian, &partitionRecord.replicaArray[j])
 			}
 			partitionRecord.lengthOfInSyncReplicaArray, _ = binary.ReadUvarint(valueBuf)
-			partitionRecord.inSyncReplicaArray = make([]uint32, partitionRecord.lengthOfInSyncReplicaArray)
+			partitionRecord.inSyncReplicaArray = make([]int32, partitionRecord.lengthOfInSyncReplicaArray)
 			for j := uint64(0); j < partitionRecord.lengthOfInSyncReplicaArray; j++ {
 				_ = binary.Read(valueBuf, binary.BigEndian, &partitionRecord.inSyncReplicaArray[j])
 			}
