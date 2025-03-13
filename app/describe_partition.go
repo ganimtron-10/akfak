@@ -182,6 +182,8 @@ func addClusterMetadataIntoResponse(response *DescribePartitionsResponse, cluste
 
 	topicPartitionMap := make(map[uuid.UUID]*Topic)
 
+	fmt.Printf("%+v\n", clusterMetadata.records[0])
+
 	for _, record := range clusterMetadata.records {
 		switch record.recordType {
 		case 2:
