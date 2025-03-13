@@ -145,6 +145,8 @@ func (response *DescribePartitionsResponse) bytes(buffer *bytes.Buffer, request 
 		binary.Write(buffer, binary.BigEndian, topic.topicId[:])
 		binary.Write(buffer, binary.BigEndian, topic.isInternal)
 
+		fmt.Printf("Partition Record in bytes: %+v", topic.partitions)
+
 		if topic.partitions == nil {
 			binary.Write(buffer, binary.BigEndian, int8(1))
 		} else {
@@ -192,7 +194,7 @@ func addClusterMetadataIntoResponse(response *DescribePartitionsResponse, cluste
 	topicPartitionMap := make(map[uuid.UUID]*Topic)
 
 	for _, clusterMetadata := range clusterMetadataLogs {
-		fmt.Printf("%+v\n%d\n", clusterMetadata.records[0], clusterMetadata.recordsLength)
+		// fmt.Printf("%+v\n%d\n", clusterMetadata.records[0], clusterMetadata.recordsLength)
 
 		for _, record := range clusterMetadata.records {
 			switch record.recordType {
@@ -218,6 +220,9 @@ func addClusterMetadataIntoResponse(response *DescribePartitionsResponse, cluste
 				if ok {
 					topic.partitions = append(topic.partitions, partition)
 				}
+
+				fmt.Printf("Partition Record adding in response: %+v", partition)
+				fmt.Printf("Length of topic partition list: %d", len(topic.partitions))
 			case 12:
 				// featureRecord
 				// Skipping for now
@@ -235,7 +240,7 @@ func readClusterMetadata() ([]*ClusterMetadata, error) {
 	if err != nil {
 		fmt.Printf("Error while reading cluster metadata log file, Error Details: %s", err)
 	}
-	fmt.Printf("%+v\n", fileData)
+	// fmt.Printf("%+v\n", fileData)
 
 	// fileData := []byte{0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 79, 0, 0, 0, 1, 2, 176, 105, 69, 124, 0, 0, 0, 0, 0, 0, 0, 0, 1, 145, 224, 90, 248, 24, 0, 0, 1, 145, 224, 90, 248, 24, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 1, 58, 0, 0, 0, 1, 46, 1, 12, 0, 17, 109, 101, 116, 97, 100, 97, 116, 97, 46, 118, 101, 114, 115, 105, 111, 110, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 154, 0, 0, 0, 1, 2, 105, 208, 150, 103, 0, 0, 0, 0, 0, 1, 0, 0, 1, 145, 224, 91, 45, 21, 0, 0, 1, 145, 224, 91, 45, 21, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 2, 60, 0, 0, 0, 1, 48, 1, 2, 0, 4, 98, 97, 114, 0, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 84, 0, 0, 144, 1, 0, 0, 2, 1, 130, 1, 1, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 84, 2, 0, 0, 0, 1, 2, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 16, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 154, 0, 0, 0, 1, 2, 16, 140, 191, 92, 0, 0, 0, 0, 0, 1, 0, 0, 1, 145, 224, 91, 45, 21, 0, 0, 1, 145, 224, 91, 45, 21, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 2, 60, 0, 0, 0, 1, 48, 1, 2, 0, 4, 98, 97, 122, 0, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 152, 0, 0, 144, 1, 0, 0, 2, 1, 130, 1, 1, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 152, 2, 0, 0, 0, 1, 2, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 16, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 228, 0, 0, 0, 1, 2, 133, 202, 140, 77, 0, 0, 0, 0, 0, 2, 0, 0, 1, 145, 224, 91, 45, 21, 0, 0, 1, 145, 224, 91, 45, 21, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 3, 60, 0, 0, 0, 1, 48, 1, 2, 0, 4, 112, 97, 120, 0, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 99, 0, 0, 144, 1, 0, 0, 2, 1, 130, 1, 1, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 99, 2, 0, 0, 0, 1, 2, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 16, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 1, 0, 0, 144, 1, 0, 0, 4, 1, 130, 1, 1, 3, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 99, 2, 0, 0, 0, 1, 2, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 16, 0, 0, 0, 0, 0, 64, 0, 128, 0, 0, 0, 0, 0, 0, 1, 0, 0}
 
@@ -260,7 +265,7 @@ func readClusterMetadata() ([]*ClusterMetadata, error) {
 		if err != nil {
 			return []*ClusterMetadata{}, err
 		}
-		fmt.Printf("%+v\n", clusterMetadata)
+		// fmt.Printf("%+v\n", clusterMetadata)
 		clusterMetadataLogRecords = append(clusterMetadataLogRecords, clusterMetadata)
 	}
 
@@ -284,7 +289,7 @@ func parseClusterMetadata(fileBuffer *bytes.Buffer) (*ClusterMetadata, error) {
 	binary.Read(fileBuffer, binary.BigEndian, &clusterMetadata.baseSequence)
 	binary.Read(fileBuffer, binary.BigEndian, &clusterMetadata.recordsLength)
 
-	fmt.Printf(`ClusterMetadata Records Length: %d\n`, clusterMetadata.recordsLength)
+	// fmt.Printf("ClusterMetadata Records Length: %d\n", clusterMetadata.recordsLength)
 
 	for i := uint32(0); i < clusterMetadata.recordsLength; i++ {
 		record := Record{}
@@ -352,6 +357,8 @@ func parseClusterMetadata(fileBuffer *bytes.Buffer) (*ClusterMetadata, error) {
 			}
 			partitionRecord.taggedFieldCount, _ = binary.ReadUvarint(valueBuf)
 			record.PartitionRecord = partitionRecord
+
+			fmt.Printf("Partition Record: %+v", partitionRecord)
 		case 12:
 			featureRecord := FeatureLevelRecord{}
 			featureRecord.frameVersion = record.frameVersion
