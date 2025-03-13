@@ -113,7 +113,7 @@ type ClusterMetadata struct {
 	producerId           uint64
 	producerEpoch        uint16
 	baseSequence         uint32
-	recordsLength        uint32
+	recordsLength        int32
 	records              []*Record
 }
 
@@ -275,7 +275,7 @@ func parseClusterMetadata(fileBytes *bytes.Buffer) (*ClusterMetadata, error) {
 
 	fmt.Printf(`ClusterMetadata Records Length: %d`, clusterMetadata.recordsLength)
 
-	for i := uint32(0); i < clusterMetadata.recordsLength; i++ {
+	for i := int32(0); i < clusterMetadata.recordsLength; i++ {
 		record := Record{}
 
 		length, _ := binary.ReadVarint(fileBytes)
