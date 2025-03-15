@@ -173,7 +173,7 @@ func (response *FetchResponse) bytes(buffer *bytes.Buffer) {
 }
 
 func (request *FetchRequest) generateResponse(commonResponse *Response) {
-	commonResponse.correlationId = request.SessionID
+	commonResponse.correlationId = request.correlationId
 
 	fetchResponse := FetchResponse{}
 	fetchResponse.ThrottleTimeMs = 0
