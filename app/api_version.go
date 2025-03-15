@@ -71,6 +71,13 @@ func (request *ApiVersionsRequest) generateResponse(commonResponse *Response) {
 	describeTopicVersion.maxVersion = 0
 	apiVersionResponse.apiKeys = append(apiVersionResponse.apiKeys, describeTopicVersion)
 
+	// fetch response
+	fetchVersion := ApiKey{}
+	fetchVersion.key = 1
+	fetchVersion.minVersion = 0
+	fetchVersion.maxVersion = 16
+	apiVersionResponse.apiKeys = append(apiVersionResponse.apiKeys, fetchVersion)
+
 	apiVersionResponse.numOfApiKeys = int8(len(apiVersionResponse.apiKeys) + 1)
 
 	apiVersionResponse.bytes(&commonResponse.BytesData)
