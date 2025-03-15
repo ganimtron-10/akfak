@@ -181,16 +181,28 @@ func (request *FetchRequest) generateResponse(commonResponse *Response) {
 	fetchResponse.ErrorCode = 0
 	fetchResponse.SessionID = request.SessionID
 
+	topicRecords, err := getTopicRecordList()
+	if err != nil {
+		fmt.Printf("Error while getting topic record list. %s", err)
+	}
+
 	for _, topic := range request.Topics {
 		topicResponse := &FetchResponseTopic{
 			TopicID: topic.TopicID,
 			Partitions: []*FetchResponsePartition{
 				{
 					PartitionIndex: 0,
-					ErrorCode:      0,
+					ErrorCode:      100,
 				},
 			},
 		}
+
+		for _, topicRecord := range topicRecords {
+			if topic.TopicID == topicRecord.topicId {
+				topicResponse.Partitions[0].ErrorCode = 0
+			}
+		}
+
 		fetchResponse.Responses = append(fetchResponse.Responses, topicResponse)
 	}
 
