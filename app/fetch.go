@@ -187,7 +187,7 @@ func (request *FetchRequest) generateResponse(commonResponse *Response) {
 			Partitions: []*FetchResponsePartition{
 				{
 					PartitionIndex: 0,
-					ErrorCode:      100,
+					ErrorCode:      0,
 				},
 			},
 		}
