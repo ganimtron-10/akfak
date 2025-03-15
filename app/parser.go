@@ -86,6 +86,10 @@ func parseRequest(buffer *bytes.Buffer) (RequestInterface, error) {
 	ignoreTagField(buffer)
 
 	switch header.apiKey {
+	case 1:
+		request := FetchRequest{RequestHeader: header}
+		request.parse(buffer)
+		return &request, nil
 	case 18:
 		request := ApiVersionsRequest{RequestHeader: header}
 		request.parse(buffer)
@@ -108,6 +112,10 @@ func processAndGenerateResponse(request RequestInterface) (ResponseInterface, er
 		request.generateResponse(&response)
 		return &response, nil
 	case *DescribePartitionsRequest:
+		response := Response{}
+		request.generateResponse(&response)
+		return &response, nil
+	case *FetchRequest:
 		response := Response{}
 		request.generateResponse(&response)
 		return &response, nil
