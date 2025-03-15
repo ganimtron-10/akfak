@@ -95,7 +95,7 @@ func readLogFile(fileName string) *[]byte {
 
 func getTopicLog(topicName string, partitionIndex int) (*[]byte, error) {
 
-	topicLogFileName := fmt.Sprintf("/tmp/kraft-combined-logs/%s-0/00000000000000000000.log", topicName, partitionIndex)
+	topicLogFileName := fmt.Sprintf("/tmp/kraft-combined-logs/%s-%d/00000000000000000000.log", topicName, partitionIndex)
 	fileData := readLogFile(topicLogFileName)
 
 	return fileData, nil
