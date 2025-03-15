@@ -81,17 +81,17 @@ func (request *FetchRequest) parse(buffer *bytes.Buffer) {
 
 	topicsLength, _ := binary.ReadUvarint(buffer)
 
-	request.Topics = make([]*FetchTopic, topicsLength)
-	for i := 0; i < int(topicsLength); i++ {
+	request.Topics = make([]*FetchTopic, topicsLength-1)
+	for i := 0; i < int(topicsLength-1); i++ {
 		topic := &FetchTopic{}
 		topicBytes := make([]byte, 16)
 		buffer.Read(topicBytes)
 		topic.TopicID, _ = uuid.FromBytes(topicBytes)
 		partitionsLength, _ := binary.ReadUvarint(buffer)
 
-		topic.Partitions = make([]*FetchPartition, partitionsLength)
+		topic.Partitions = make([]*FetchPartition, partitionsLength-1)
 
-		for j := 0; j < int(partitionsLength); j++ {
+		for j := 0; j < int(partitionsLength-1); j++ {
 			partition := &FetchPartition{}
 			binary.Read(buffer, binary.BigEndian, &partition.Partition)
 			binary.Read(buffer, binary.BigEndian, &partition.CurrentLeaderEpoch)
@@ -106,8 +106,8 @@ func (request *FetchRequest) parse(buffer *bytes.Buffer) {
 
 	forgottenTopicsLength, _ := binary.ReadUvarint(buffer)
 
-	request.ForgottenTopicsData = make([]*ForgottenTopicData, forgottenTopicsLength)
-	for i := 0; i < int(forgottenTopicsLength); i++ {
+	request.ForgottenTopicsData = make([]*ForgottenTopicData, forgottenTopicsLength-1)
+	for i := 0; i < int(forgottenTopicsLength-1); i++ {
 		forgottenTopic := &ForgottenTopicData{}
 		topicBytes := make([]byte, 16)
 		buffer.Read(topicBytes)
@@ -122,10 +122,12 @@ func (request *FetchRequest) parse(buffer *bytes.Buffer) {
 	}
 
 	rackIDLength, _ := binary.ReadUvarint(buffer)
-	rackIDBytes := make([]byte, rackIDLength-1)
-	buffer.Read(rackIDBytes)
+	if rackIDLength > 0 {
+		rackIDBytes := make([]byte, rackIDLength-1)
+		buffer.Read(rackIDBytes)
 
-	request.RackID = string(rackIDBytes)
+		request.RackID = string(rackIDBytes)
+	}
 
 	ignoreTagField(buffer)
 	fmt.Printf("%+v\n", request)
