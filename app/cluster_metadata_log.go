@@ -84,6 +84,25 @@ type ClusterMetadata struct {
 	records              []*Record
 }
 
+func getTopicRecordList() ([]*TopicRecord, error) {
+	topicList := []*TopicRecord{}
+
+	clusterMetadataLogs, err := readClusterMetadata()
+	if err != nil {
+		return topicList, err
+	}
+
+	for _, recordBatch := range clusterMetadataLogs {
+		for _, record := range recordBatch.records {
+			if record.recordType == 2 {
+				topicList = append(topicList, &record.TopicRecord)
+			}
+		}
+	}
+
+	return topicList, nil
+}
+
 func readClusterMetadata() ([]*ClusterMetadata, error) {
 
 	clusterMetadataLogFileName := "/tmp/kraft-combined-logs/__cluster_metadata-0/00000000000000000000.log"
