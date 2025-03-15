@@ -84,6 +84,23 @@ type ClusterMetadata struct {
 	records              []*Record
 }
 
+func readLogFile(fileName string) *[]byte {
+	fileData, err := os.ReadFile(fileName)
+	if err != nil {
+		fmt.Printf("Error while reading cluster metadata log file, Error Details: %s", err)
+	}
+	fmt.Printf("%+v\n", fileData)
+	return &fileData
+}
+
+func getTopicLog(topicName string, partitionIndex int) (*[]byte, error) {
+
+	topicLogFileName := fmt.Sprintf("/tmp/kraft-combined-logs/%s-0/00000000000000000000.log", topicName, partitionIndex)
+	fileData := readLogFile(topicLogFileName)
+
+	return fileData, nil
+}
+
 func getTopicRecordList() ([]*TopicRecord, error) {
 	topicList := []*TopicRecord{}
 
