@@ -105,20 +105,21 @@ func (request *FetchRequest) parse(buffer *bytes.Buffer) {
 	}
 
 	forgottenTopicsLength, _ := binary.ReadUvarint(buffer)
+	if forgottenTopicsLength > 0 {
+		request.ForgottenTopicsData = make([]*ForgottenTopicData, forgottenTopicsLength-1)
+		for i := 0; i < int(forgottenTopicsLength-1); i++ {
+			forgottenTopic := &ForgottenTopicData{}
+			topicBytes := make([]byte, 16)
+			buffer.Read(topicBytes)
+			forgottenTopic.TopicID, _ = uuid.FromBytes(topicBytes)
+			forgottenPartitionsLength, _ := binary.ReadUvarint(buffer)
 
-	request.ForgottenTopicsData = make([]*ForgottenTopicData, forgottenTopicsLength-1)
-	for i := 0; i < int(forgottenTopicsLength-1); i++ {
-		forgottenTopic := &ForgottenTopicData{}
-		topicBytes := make([]byte, 16)
-		buffer.Read(topicBytes)
-		forgottenTopic.TopicID, _ = uuid.FromBytes(topicBytes)
-		forgottenPartitionsLength, _ := binary.ReadUvarint(buffer)
-
-		forgottenTopic.Partitions = make([]int32, forgottenPartitionsLength)
-		for j := 0; j < int(forgottenPartitionsLength); j++ {
-			binary.Read(buffer, binary.BigEndian, &forgottenTopic.Partitions[j])
+			forgottenTopic.Partitions = make([]int32, forgottenPartitionsLength)
+			for j := 0; j < int(forgottenPartitionsLength); j++ {
+				binary.Read(buffer, binary.BigEndian, &forgottenTopic.Partitions[j])
+			}
+			request.ForgottenTopicsData[i] = forgottenTopic
 		}
-		request.ForgottenTopicsData[i] = forgottenTopic
 	}
 
 	rackIDLength, _ := binary.ReadUvarint(buffer)
