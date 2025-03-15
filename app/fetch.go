@@ -180,27 +180,18 @@ func (request *FetchRequest) generateResponse(commonResponse *Response) {
 	fetchResponse.ErrorCode = 0
 	fetchResponse.SessionID = request.SessionID
 
-	// topicResponse := &FetchResponseTopic{
-	// 	TopicID: uuid.New(),
-	// 	Partitions: []*FetchResponsePartition{
-	// 		{
-	// 			PartitionIndex:   0,
-	// 			ErrorCode:        0,
-	// 			HighWatermark:    100,
-	// 			LastStableOffset: 90,
-	// 			LogStartOffset:   0,
-	// 			AbortedTransactions: []*AbortedTransaction{
-	// 				{
-	// 					ProducerID:  123,
-	// 					FirstOffset: 10,
-	// 				},
-	// 			},
-	// 			PreferredReadReplica: 1,
-	// 			Records:              []byte{0x01, 0x02, 0x03},
-	// 		},
-	// 	},
-	// }
-	// fetchResponse.Responses = append(fetchResponse.Responses, topicResponse)
+	for _, topic := range request.Topics {
+		topicResponse := &FetchResponseTopic{
+			TopicID: topic.TopicID,
+			Partitions: []*FetchResponsePartition{
+				{
+					PartitionIndex: 0,
+					ErrorCode:      100,
+				},
+			},
+		}
+		fetchResponse.Responses = append(fetchResponse.Responses, topicResponse)
+	}
 
 	fetchResponse.bytes(&commonResponse.BytesData)
 }
