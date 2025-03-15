@@ -198,8 +198,14 @@ func (request *FetchRequest) generateResponse(commonResponse *Response) {
 		}
 
 		for _, topicRecord := range topicRecords {
+			partition := topicResponse.Partitions[0]
 			if topic.TopicID == topicRecord.topicId {
-				topicResponse.Partitions[0].ErrorCode = 0
+				partition.ErrorCode = 0
+				topicLog, err := getTopicLog(topicRecord.name, int(partition.PartitionIndex))
+				if err != nil {
+					fmt.Printf("Error while getting topic log. %s", err)
+				}
+				partition.Records = append(partition.Records, *topicLog...)
 			}
 		}
 
